@@ -26,6 +26,7 @@ export default function LocationBasedRiskApp() {
   const [error, setError] = useState<string | null>(null);
   const [loadedFromStorage, setLoadedFromStorage] =
     useState<null | UserLocation>(null);
+  const [calculationError, setCalculationError] = useState<string | null>(null);
 
   // AFAD verilerini yükle
   useEffect(() => {
@@ -213,7 +214,6 @@ export default function LocationBasedRiskApp() {
   }
 
   // Hesaplama hatası durumu için state
-  const [calculationError, setCalculationError] = useState<string | null>(null);
 
   let best = {
     eq: candidates[0],
