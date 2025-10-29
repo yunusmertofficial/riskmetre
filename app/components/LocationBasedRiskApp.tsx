@@ -32,12 +32,15 @@ export default function LocationBasedRiskApp() {
     const loadEarthquakes = async () => {
       try {
         setIsLoading(true);
+        setError(null); // Hata state'ini temizle
         const data = await getLatestEarthquakes();
         setEarthquakes(data);
-        setError(null);
       } catch (err) {
-        setError("Deprem verileri yüklenemedi");
         console.error("Deprem verisi yükleme hatası:", err);
+        setError(
+          err instanceof Error ? err.message : "Deprem verileri yüklenemedi"
+        );
+        setEarthquakes([]); // Hata durumunda boş array
       } finally {
         setIsLoading(false);
       }
@@ -93,22 +96,49 @@ export default function LocationBasedRiskApp() {
       </div>
     );
   }
-
+  console.log("error", error);
   // Hata durumu
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-900 to-orange-900 flex items-center justify-center p-4">
-        <div className="text-white text-center">
-          <h1 className="text-3xl font-bold mb-4">⚠️ Hata</h1>
-          <p className="text-xl mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-white text-red-900 font-medium py-3 px-6 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            Tekrar Dene
-          </button>
+      <>
+        {loadedFromStorage && (
+          <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 bg-white/10 text-white border border-white/20 px-4 py-2 rounded shadow">
+            {loadedFromStorage.isManual
+              ? "Yeni konum kaydedildi"
+              : "Konum güncellendi"}
+            :{" "}
+            <strong>
+              {loadedFromStorage.city ||
+                `${loadedFromStorage.latitude.toFixed(
+                  2
+                )}, ${loadedFromStorage.longitude.toFixed(2)}`}
+            </strong>
+            . Değiştirmek ister misin?
+            <button
+              className="ml-3 underline hover:opacity-80"
+              onClick={() => {
+                setUserLocation(null);
+                setLoadedFromStorage(null);
+              }}
+            >
+              Konumu Değiştir
+            </button>
+          </div>
+        )}
+        <div className="min-h-screen bg-gradient-to-br from-red-900 to-orange-900 flex items-center justify-center p-4">
+          <div className="text-white text-center">
+            <h1 className="text-3xl font-bold mb-4">⚠️ Veri Hatası</h1>
+            <p className="text-xl mb-6">Deprem verileri yüklenemedi</p>
+            <p className="text-sm mb-6 opacity-75">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-white text-red-900 font-medium py-3 px-6 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Tekrar Dene
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -182,29 +212,112 @@ export default function LocationBasedRiskApp() {
     );
   }
 
+  // Hesaplama hatası durumu için state
+  const [calculationError, setCalculationError] = useState<string | null>(null);
+
   let best = {
     eq: candidates[0],
     result: null as ReturnType<typeof calculateAftershockProbability> | null,
   };
 
   let bestProb = -1;
-  for (const eq of candidates) {
-    const mainshock: Mainshock = {
-      magnitude: parseFloat(eq.magnitude),
-      date: eq.date,
-      latitude: parseFloat(eq.latitude),
-      longitude: parseFloat(eq.longitude),
-    };
-    const r = calculateAftershockProbability(
-      mainshock,
-      TARGET_AFTERSHOCK_MAGNITUDE,
-      24,
-      userLocation
-    );
-    if (r.probabilityPercent > bestProb) {
-      best = { eq, result: r };
-      bestProb = r.probabilityPercent;
+
+  try {
+    for (const eq of candidates) {
+      try {
+        const mainshock: Mainshock = {
+          magnitude: parseFloat(eq.magnitude),
+          date: eq.date,
+          latitude: parseFloat(eq.latitude),
+          longitude: parseFloat(eq.longitude),
+        };
+
+        // Koordinat validasyonu
+        if (
+          isNaN(mainshock.latitude) ||
+          isNaN(mainshock.longitude) ||
+          isNaN(mainshock.magnitude)
+        ) {
+          console.warn(`Geçersiz deprem verisi: ${eq.eventID}`, eq);
+          continue;
+        }
+
+        const r = calculateAftershockProbability(
+          mainshock,
+          TARGET_AFTERSHOCK_MAGNITUDE,
+          24,
+          userLocation
+        );
+
+        if (r.probabilityPercent > bestProb) {
+          best = { eq, result: r };
+          bestProb = r.probabilityPercent;
+        }
+      } catch (eqError) {
+        console.error(`Deprem hesaplama hatası (${eq.eventID}):`, eqError);
+        // Tek deprem hatası tüm sistemi durdurmasın
+        continue;
+      }
     }
+
+    if (!best.result) {
+      throw new Error("Hiçbir deprem için geçerli hesaplama yapılamadı");
+    }
+  } catch (error) {
+    console.error("Risk hesaplama hatası:", error);
+    setCalculationError(
+      error instanceof Error ? error.message : "Bilinmeyen hesaplama hatası"
+    );
+  }
+
+  // Hesaplama hatası varsa hata ekranını göster
+  if (calculationError) {
+    return (
+      <>
+        {loadedFromStorage && (
+          <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 bg-white/10 text-white border border-white/20 px-4 py-2 rounded shadow">
+            {loadedFromStorage.isManual
+              ? "Yeni konum kaydedildi"
+              : "Konum güncellendi"}
+            :{" "}
+            <strong>
+              {loadedFromStorage.city ||
+                `${loadedFromStorage.latitude.toFixed(
+                  2
+                )}, ${loadedFromStorage.longitude.toFixed(2)}`}
+            </strong>
+            . Değiştirmek ister misin?
+            <button
+              className="ml-3 underline hover:opacity-80"
+              onClick={() => {
+                setUserLocation(null);
+                setLoadedFromStorage(null);
+              }}
+            >
+              Konumu Değiştir
+            </button>
+          </div>
+        )}
+        <div className="min-h-screen bg-gradient-to-br from-red-900 to-orange-900 flex items-center justify-center p-4">
+          <div className="text-white text-center">
+            <h1 className="text-3xl font-bold mb-4">⚠️ Hesaplama Hatası</h1>
+            <p className="text-xl mb-6">
+              Risk hesaplaması yapılırken hata oluştu
+            </p>
+            <p className="text-sm mb-6 opacity-75">{calculationError}</p>
+            <button
+              onClick={() => {
+                setCalculationError(null);
+                window.location.reload();
+              }}
+              className="bg-white text-red-900 font-medium py-3 px-6 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Tekrar Dene
+            </button>
+          </div>
+        </div>
+      </>
+    );
   }
 
   const chosen = best.result!;

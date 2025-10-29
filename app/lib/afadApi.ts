@@ -38,6 +38,10 @@ export async function getLatestEarthquakes(): Promise<AfadEarthquake[]> {
     return data as AfadEarthquake[];
   } catch (error) {
     console.error("Deprem verisi çekilemedi:", error);
-    return []; // Hata olursa boş liste döndür
+    // Hata yukarıya fırlatılır ki UI doğru şekilde hata ekranı gösterebilsin
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Deprem verileri alınamadı");
   }
 }
