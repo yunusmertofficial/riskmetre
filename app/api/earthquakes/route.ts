@@ -3,19 +3,29 @@ import { NextRequest, NextResponse } from "next/server";
 
 // AFAD'ın istediği 'YYYY-MM-DD HH:MM:SS' formatı için yardımcı fonksiyon
 function formatAfadDate(date: Date): string {
-  const pad = (num: number) => num.toString().padStart(2, "0");
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: "Europe/Istanbul", // En önemli kısım: UTC+3'e zorla
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23", // 24 saat formatı (00-23)
+  };
 
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
+  // 'en-CA' (Kanada) lokasyonu 'YYYY-MM-DD' formatını sağlar.
+  const formatter = new Intl.DateTimeFormat("en-CA", options);
 
-  // URL encoding için boşluğu %20, : karakterini %3A yap
-  return `${year}-${month}-${day}%20${hours}%3A${minutes}%3A${seconds}`;
+  // Bu işlem "2025-10-30, 15:30:45" gibi bir çıktı üretir
+  const formattedString = formatter.format(date);
+
+  // Çıktıyı AFAD'ın URL formatına çevir:
+  // "2025-10-30, 15:30:45" -> "2025-10-30%2015%3A30%3A45"
+  return formattedString
+    .replace(", ", "%20") // Virgül ve boşluğu %20 (boşluk) ile değiştir
+    .replace(/:/g, "%3A"); // Tüm : (iki nokta) karakterlerini %3A ile değiştir
 }
-
 /**
  * AFAD deprem verilerini proxy'leyen API route
  * CORS sorununu çözer ve sunucu tarafında veri çeker
@@ -34,9 +44,8 @@ export async function GET(request: NextRequest) {
 
     const start = formatAfadDate(startDate);
     const end = formatAfadDate(endDate);
-
     const url = `https://deprem.afad.gov.tr/apiv2/event/filter?start=${start}&end=${end}&orderby=timedesc`;
-
+    console.log("Fetching AFAD data from URL:", url);
     // Sunucu tarafında fetch (CORS sorunu yok)
     const response = await fetch(url, {
       headers: {
