@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s | RiskMetre",
   },
   description:
-    "RiskMetre, AFAD verileri ve bilimsel modellere dayalı olarak konumunuza özel artçı deprem riskini hesaplar. Bu bir deprem tahmini değildir; istatistiksel bir olasılık hesabıdır. Yunus Emre",
+    "RiskMetre, AFAD verileri ve bilimsel modellere dayalı olarak konumunuza özel artçı deprem riskini hesaplar. Bu bir deprem tahmini değildir; istatistiksel bir olasılık hesabıdır.",
   applicationName: "RiskMetre",
   keywords: [
     "deprem",
