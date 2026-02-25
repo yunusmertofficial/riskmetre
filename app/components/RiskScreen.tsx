@@ -102,6 +102,7 @@ export default function RiskScreen({
         bir artçı olasılık hesabıdır. Lütfen her zaman AFAD'ın resmi uyarılarını
         takip edin.
       </p>
+      <p className="mt-1 text-xs opacity-70">Yunus Emre</p>
     </main>
   );
 }
