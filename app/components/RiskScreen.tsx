@@ -101,6 +101,7 @@ export default function RiskScreen({
         Bu bir deprem tahmini değildir. Bilimsel modellere dayalı istatistiksel
         bir artçı olasılık hesabıdır. Lütfen her zaman AFAD'ın resmi uyarılarını
         takip edin.
+        Yunus Emre
       </p>
     </main>
   );
