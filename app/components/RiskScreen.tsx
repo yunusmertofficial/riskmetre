@@ -1,55 +1,4 @@
-// app/components/RiskScreen.tsx
-import { RiskLevel, UserLocation } from "@/app/lib/aftershockCalculator";
-import { formatDistanceInfo } from "@/app/lib/distanceCalculator";
-
-// Risk seviyelerine göre mesajları ve renkleri map'leyelim
-// Bu, senin brief'indeki tabloyla %100 aynı
-const riskData = {
-  "🟢": {
-    bgColor: "bg-green-600", // Tailwind CSS sınıfı
-    title: "Risk Düşük",
-    message: "Son 24 saatte ciddi artçı beklenmiyor.",
-  },
-  "🟡": {
-    bgColor: "bg-yellow-500",
-    title: "Dikkat",
-    message: "Normalden fazla sismik hareket var. Tetikte kal.",
-  },
-  "🟠": {
-    bgColor: "bg-orange-500",
-    title: "Yüksek Risk",
-    message: "Önümüzdeki 24 saatte zarar verebilecek artçı ihtimali artmış.",
-  },
-  "🔴": {
-    bgColor: "bg-red-600",
-    title: "Kritik",
-    message:
-      "Zarar verici artçı olasılığı yüksek. Açık alanda kalman önerilir.",
-  },
-};
-
-interface RiskScreenProps {
-  level: RiskLevel;
-  mainshock: { location: string; magnitude: number } | null;
-  probability?: number;
-  distanceKm?: number;
-  userLocation?: UserLocation;
-}
-
-export default function RiskScreen({
-  level,
-  mainshock,
-  probability,
-  distanceKm,
-  userLocation,
-}: RiskScreenProps) {
-  const data = riskData[level];
-
-  return (
-    // Bu 'main' etiketi tüm ekranı kaplar ve rengi belirler
-    <main
-      className={`flex min-h-screen flex-col items-center justify-center p-8 text-white text-center transition-colors duration-500 ${data.bgColor}`}
-    >
+LyogYXBwL2NvbXBvbmVudHMvUmlza1NjcmVlbi50c3gKaW1wb3J0IHsgUmlza0xldmVsLCBVc2VyTG9jYXRpb24gfSBmcm9tICJAL2FwcC9saWIvYWZ0ZXJzaG9ja0NhbGN1bGF0b3IiOwppbXBvcnQgeyBmb3JtYXREaXN0YW5jZUluZm8gfSBmcm9tICJAL2FwcC9saWIvZGlzdGFuY2VDYWxjdWxhdG9yIjsKCy8vIFJpc2sgc2V2aXllbGVyaW5lIGfDtnJlIG1lc2FqbGFyxLEgdmUgcmVuZ2xlcmkgbWFwJ2xleWVsaW0KLy8gQnUsIHNlbmluIGJyaWVmJ2luZGVraSB0YWJsb3lsYSAlMTAwIGF5bsSxCgpjb25zdCByaXNrRGF0YSA9IHsKICAi4pmKIjogewogICAgYmdDb2xvcjogImJnLWdyZWVuLTYwMCIsIC8vIFRhaWx3aW5kIENTUyBzaW7xZnEsCiAgICB0aXRsZTogIlJpc2sgRMfDvcW8ayIsCiAgICBtZXNzYWdlOiAiU29uIDI0IHNhYXR0ZSBjaWRkaSBhcnTDuXRhw6fEsSBiZWtsZW5taXlvci4iLAogIH0sCiAgIsKZIjogewogICAgYmdDb2xvcjogImJnLXllbGxvdy01MDAiLAogICAgdGl0bGU6ICJEaWtrYXQiLAogICAgbWVzc2FnZTogIk5vcm1hbGRlbiBmYXJsYSBzaXNtaWsgc2VuIGhhcmVrZXQgdmFyLiBUZXRpa3RlIGthbC4iLAogIH0sCiAgIsOUIjogewogICAgYmdDb2xvcjogImJnLW9yYW5nZS01MDAiLAogICAgdGl0bGU6ICJZb2tzZWsgUmlzayIsCiAgICBtZXNzYWdlOiAiw5Zuw7xtw7x6ZGVraSAyNCBzYWF0dGUgemFyYXIgdmVyZWJpbGVjZWsgYXJTw6fEsSBpaHRpbWFsZSBhcnRtxLFzLiIsCiAgfSwKICAi4pqKIjogewogICAgYmdDb2xvcjogImJnLXJlZC02MDAiLAogICAgdGl0bGU6ICJLcml0aWsiLAogICAgbWVzc2FnZToKICAgICAgIlphcmFyIHZlcmljaSBhcnTDuXRhw6fEsSBvbGFzw7FsxLFrIGfDtnNla3MuIEFjw7FrIGFsYW5kYSBrYWxtYW4gw7ZcbiAgICAgICBuZXJpbGlyaXMuIiwKICB9LAp9OwovLyByaXNrRGF0YSBpYmFyZWxlcmluZ2EgZ8O2cmUgbWVzYWpsYXLEsSBoYXJpdGFsYW5EacSxxJ9pIGFzYWPEdGFza2FsaW1pCgpwcm92aWRlIGludGVyZmFjZSBSaXNrU2NyZWVuUHJvcHMgewogIGxldmVsOiBSaXNrTGV2ZWw7CiAgbWFpbnNob2NrOiB7IGxvY2F0aW9uOiBzdHJpbmc7IG1hZ25pdHVkZTogbnVtYmVyIH0gfCBudWxsOwogIHByb2JhYmlsaXR5PzogbnVtYmVyOwogIGRpc3RhbmNlS20/OiBudW1iZXI7CiAgdXNlckxvY2F0aW9uPzogVXNlckxvY2F0aW9uOwp9CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBSaXNrU2NyZWVuKHsKICBsZXZlbCwKICBtYWluc2hvY2ssCiAgcHJvYmFiaWxpdHksCiAgZGlzdGFuY2VLbSwKICB1c2VyTG9jYXRpb24sCn06IFJpc2tTY3JlZW5Qcm9wcykgewogIGNvbnN0IGRhdGEgPSByaXNrRGF0YVtsZXZlbF07CgogIHJldHVybiAoCiAgICAvLyBCdSAnbWFpbicgZXRpa2V0aSB0w7xtIGVrcmFuxLEgS2FwbGFyIHZlIHJlbmdpIGJlbGlybGVyCiAgICA8bWFpbgoBICAgICAgY2xhc3NOYW1l={`ZmxleCBtaW4taC1zY3JlZW4gZmxleC1jb2wgZXRpa2V0aSBpYmFyZWxlcmluZ2EgZ8O2cmUgaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHA4IHRleHQtN2xlIGVrcmFuxLEgS2FwbGFyIHZlIHJlbmdpIGJlbGlybGVyIHRleHQtY2VudGVyIHRyYW5zaXRpb24tY29sb3JzIGR1cmF0aW9uLTUwMCByeXNrRGF0YVtsZXZlbF0uYmdDb2xvcg==`}\n    >
       {/* 1. Ana Başlık (Risk Seviyesi) */}
       <h1 className="text-5xl md:text-7xl font-bold mb-4">{data.title}</h1>
 
@@ -88,8 +37,7 @@ export default function RiskScreen({
             {/* İsteğe bağlı: Hesaplanan yüzdesel olasılığı gösterme */}
             {probability && (
               <p className="text-sm mt-4">
-                (Hesaplanan Olasılık: %{probability.toFixed(1)})
-              </p>
+                (Hesaplanan Olasılık: %{probability.toFixed(1)})\n              </p>
             )}
           </>
         ) : (
@@ -98,9 +46,7 @@ export default function RiskScreen({
       </div>
       {/* 4. Sorumluluk Reddi */}
       <p className="mt-12 max-w-2xl text-xs opacity-70">
-        Bu bir deprem tahmini değildir. Bilimsel modellere dayalı istatistiksel
-        bir artçı olasılık hesabıdır. Lütfen her zaman AFAD'ın resmi uyarılarını
-        takip edin.
+        Bu bir deprem tahmini değildir. Bilimsel modellere dayalı istatistiksel\n        bir artçı olasılık hesabıdır. Lütfen her zaman AFAD'ın resmi uyarılarını\n        takip edin. Yunus Emre
       </p>
     </main>
   );
